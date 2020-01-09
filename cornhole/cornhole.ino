@@ -1,8 +1,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
-#include <Fonts/FreeSerifBold18pt7b.h>
-#include <Fonts/FreeSerifBoldItalic18pt7b.h>
+
 #ifndef PSTR
  #define PSTR // Make Arduino Due happy
 #endif
@@ -17,30 +16,47 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, PIN,
 const uint16_t colors[] = {
   matrix.Color(255, 255, 255), matrix.Color(255, 26, 0), matrix.Color(180, 255, 0), matrix.Color(0, 200, 255) };
 
-void setup() {
-  // put your setup code here, to run once:
+int scoreBlue = 0;
+int scoreRed = 0;
+
+void showScore(String blue, String red) {
   matrix.begin();
   matrix.fillScreen(0);
   matrix.setTextWrap(false);
   matrix.setBrightness(20);
   matrix.setTextSize(1);
-  matrix.setFont(&FreeSerifBold18pt7b);
+  
   matrix.setTextColor(colors[3]);
-  matrix.setCursor(0, 0);
-  matrix.print("10");
+  matrix.setCursor(1, 0);
+  matrix.print(blue);
 
   matrix.setTextColor(colors[0]);
-  matrix.setCursor(13, 0);
+  matrix.setCursor(14, 0);
   matrix.print("-");
 
   matrix.setTextColor(colors[1]);
-  matrix.setCursor(18, 0);
-  matrix.setFont(&FreeSerifBoldItalic18pt7b);
-  matrix.print("10");
+  matrix.setCursor(19, 0);
+  matrix.print(red);
   matrix.show();
 }
 
+void setup() {
+  // put your setup code here, to run once:
+  
+
+  showScore((String)scoreBlue, (String)scoreRed);
+}
+
+
+
 void loop() {
   // put your main code here, to run repeatedly:
+  //delay(1000);
 
+  //scoreBlue++;
+  //showScore((String)scoreBlue, (String)scoreRed);
+
+  //delay(1000);
+  //scoreRed++;
+  //showScore((String)scoreBlue, (String)scoreRed);
 }
