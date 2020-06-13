@@ -2,7 +2,6 @@
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
 #include <SoftwareSerial.h>
-//#include <Fonts\FreeSans9pt7b.h>
 #include "FreeMono9pt7b.h"
 
 //Serial port
@@ -24,10 +23,11 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, PIN,
   NEO_GRB            + NEO_KHZ800);
 
 const uint16_t colors[] = {
-  matrix.Color(255, 255, 255), matrix.Color(255, 26, 0), matrix.Color(180, 255, 0), matrix.Color(0, 200, 255) };
+  matrix.Color(155, 155, 155), matrix.Color(255, 26, 0), matrix.Color(180, 255, 0), matrix.Color(0, 200, 255) };
 
-int scoreBlue = 2;
-int scoreRed = 1;
+int scoreBlue = 0;
+int scoreRed = 0;
+bool btReady = false;
 
 void drawCentreString(const String &buf, int x, int y)
 {
@@ -40,12 +40,7 @@ void drawCentreString(const String &buf, int x, int y)
 
 void showScore(String blue, String red) {
   matrix.fillScreen(0);
-  matrix.fillRect(0, 0, 32, 8, matrix.Color(0, 0, 0));
-  matrix.show();
-  matrix.setTextWrap(false);
-  matrix.setBrightness(10);
-  matrix.setTextSize(1);
-  matrix.setFont(&FreeMono9pt7b);
+  
   matrix.setTextColor(colors[3]);
   
   /*String bufferBlue = "";
@@ -76,17 +71,44 @@ void showScore(String blue, String red) {
 void setup() {
   hc06.begin(9600);
   matrix.begin();
-  
+  matrix.setTextWrap(false);
+  matrix.setBrightness(5);
+  matrix.setTextSize(1);
+  matrix.setFont(&FreeMono9pt7b);
 
   Serial.begin(9600);
   Serial.println("STARTING CORN HOLE 2 TURBO");  
 
-showScore((String)scoreBlue, (String)scoreRed);
-
+//showScore((String)scoreBlue, (String)scoreRed);
+//showWaiting();
   delay(500);
 }
 
+int x_wait    = matrix.width();
+int pass = 0;
+String s_wait = "CORN HOLE 2 TURBO WAITING FOR PLAYERS...";
 
+
+void showWaiting(){
+  matrix.setBrightness(5);
+  matrix.fillScreen(0);
+  matrix.setCursor(x_wait, 7);
+  int16_t x1, y1;
+  uint16_t w, h;
+  matrix.getTextBounds(s_wait, 0, 7, &x1, &y1, &w, &h);
+  int zero = 0;
+  //Serial.println(w);
+ 
+  matrix.print(s_wait);
+  Serial.println("xwait : " + (String)x_wait + " / w : " + (String)w + " -w : " + (String)(zero - (int)w));
+  if(--x_wait < (zero - (int)w)) {
+    x_wait = matrix.width();
+    if(++pass >= 3) pass = 0;
+    matrix.setTextColor(colors[pass]);
+  }
+  matrix.show();
+  delay(100);
+}
 
 void loop() {
   char old_state = state;
@@ -124,7 +146,13 @@ void loop() {
         Serial.println("resting");
         break;
     }
-  
-    showScore((String)scoreBlue, (String)scoreRed);
+
+    if(state != 'S'){
+      showScore((String)scoreBlue, (String)scoreRed);
+    }
+  }
+
+  if(state == 'S'){
+    showWaiting();
   }
 }
