@@ -2,6 +2,8 @@
 #include <Adafruit_NeoMatrix.h>
 #include <Adafruit_NeoPixel.h>
 #include <SoftwareSerial.h>
+//#include <Fonts\FreeSans9pt7b.h>
+#include "FreeMono9pt7b.h"
 
 //Serial port
 #define HEADER        '|'
@@ -24,36 +26,62 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, PIN,
 const uint16_t colors[] = {
   matrix.Color(255, 255, 255), matrix.Color(255, 26, 0), matrix.Color(180, 255, 0), matrix.Color(0, 200, 255) };
 
-int scoreBlue = 0;
-int scoreRed = 0;
+int scoreBlue = 2;
+int scoreRed = 1;
+
+void drawCentreString(const String &buf, int x, int y)
+{
+    int16_t x1, y1;
+    uint16_t w, h;
+    matrix.getTextBounds(buf, x, y, &x1, &y1, &w, &h); //calc width of new string
+    matrix.setCursor(x - w / 2, y);
+    matrix.print(buf);
+}
 
 void showScore(String blue, String red) {
   matrix.fillScreen(0);
+  matrix.fillRect(0, 0, 32, 8, matrix.Color(0, 0, 0));
+  matrix.show();
   matrix.setTextWrap(false);
   matrix.setBrightness(10);
   matrix.setTextSize(1);
-  
+  matrix.setFont(&FreeMono9pt7b);
   matrix.setTextColor(colors[3]);
-  matrix.setCursor(1, 0);
-  matrix.print(blue);
+  
+  /*String bufferBlue = "";
+  if(blue.length() < 2){
+    bufferBlue = "0" + blue;
+  }else{
+    bufferBlue = blue;
+  }*/
+  drawCentreString(blue, 6, 7);
 
   matrix.setTextColor(colors[0]);
-  matrix.setCursor(14, 0);
-  matrix.print("-");
-
+  drawCentreString("-", 18, 10);
+  
   matrix.setTextColor(colors[1]);
-  matrix.setCursor(19, 0);
-  matrix.print(red);
+
+  /*String bufferRed = "";
+  if(red.length() < 2){
+    bufferRed = "0" + red;
+  }else{
+    bufferRed = red;
+  }*/
+  drawCentreString(red, 25, 7);
+  
+  
   matrix.show();
 }
 
 void setup() {
   hc06.begin(9600);
   matrix.begin();
-  showScore((String)scoreBlue, (String)scoreRed);
+  
 
   Serial.begin(9600);
   Serial.println("STARTING CORN HOLE 2 TURBO");  
+
+showScore((String)scoreBlue, (String)scoreRed);
 
   delay(500);
 }
