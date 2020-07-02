@@ -18,12 +18,12 @@ char state = 'S';
 SoftwareSerial hc06(4, 5);
 
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, PIN,
-  NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
+  NEO_MATRIX_BOTTOM     + NEO_MATRIX_RIGHT +
   NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG,
   NEO_GRB            + NEO_KHZ800);
 
 const uint16_t colors[] = {
-  matrix.Color(155, 155, 155), matrix.Color(255, 26, 0), matrix.Color(180, 255, 0), matrix.Color(0, 200, 255) };
+  matrix.Color(255, 255, 255), matrix.Color(226, 63, 28), matrix.Color(180, 255, 0), matrix.Color(239, 223, 14) };
 
 int scoreBlue = 0;
 int scoreRed = 0;
@@ -39,20 +39,36 @@ void drawCentreString(const String &buf, int x, int y)
 }
 
 void showScore(String blue, String red) {
-  matrix.fillScreen(0);
+  matrix.clear();
+
+  //matrix.fill(matrix.Color(239, 223, 14), 110, 2);
+  //matrix.fill(colors[1], 142, 4);
+  for(int i=112; i<114; i++) {
+    matrix.setPixelColor(i, 239, 223, 14);
+  }
+  for(int i=142; i<144; i++) {
+    matrix.setPixelColor(i, 239, 223, 14);
+  }
+
+  for(int i=110; i<112; i++) {
+    matrix.setPixelColor(i, 226, 63, 28);
+  }
+  for(int i=144; i<146; i++) {
+    matrix.setPixelColor(i, 226, 63, 28);
+  }
   
   matrix.setTextColor(colors[3]);
-  
+    
   /*String bufferBlue = "";
   if(blue.length() < 2){
     bufferBlue = "0" + blue;
   }else{
     bufferBlue = blue;
   }*/
-  drawCentreString(blue, 6, 7);
+  drawCentreString(blue, 7, 7);
 
-  matrix.setTextColor(colors[0]);
-  drawCentreString("-", 18, 10);
+  //matrix.setTextColor(colors[3]);
+  //drawCentreString("-", 18, 10);
   
   matrix.setTextColor(colors[1]);
 
@@ -153,6 +169,7 @@ void loop() {
   }
 
   if(state == 'S'){
-    showWaiting();
+    //showWaiting();
+    showScore((String)scoreBlue, (String)scoreRed);
   }
 }
