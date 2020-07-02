@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.util.Set;
 import java.util.UUID;
 
-public class CornHole2Turbo extends AppCompatActivity implements View.OnClickListener {
+public class CornHole2Turbo extends AppCompatActivity {
 
     int REQUEST_ENABLE_BLUETOOTH = 0;
     BluetoothAdapter bluetoothAdapter = null;
@@ -34,6 +34,14 @@ public class CornHole2Turbo extends AppCompatActivity implements View.OnClickLis
     // UUID de l'application Android
     public final static UUID BLUETOOTH_ANDROID_UUID = UUID.fromString("a23f621e-bca4-11ea-b3de-0242ac130004");
 
+    // Listener sur le click sur le bouton bluetooth
+    private View.OnClickListener bluetoothIconListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            discoverBluetooth(view);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -43,8 +51,8 @@ public class CornHole2Turbo extends AppCompatActivity implements View.OnClickLis
 //                SYSTEM_UI_FLAG_FULLSCREEN,
 //                SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
-        ImageView button = (ImageView) this.findViewById(R.id.connect_icon);
-        button.setOnClickListener(this);
+        // Ajout du listener sur le bouton de connection bluetooth
+        this.findViewById(R.id.connect_icon).setOnClickListener(bluetoothIconListener);
 
         // Get the default adapter and verify
         try {
@@ -67,6 +75,29 @@ public class CornHole2Turbo extends AppCompatActivity implements View.OnClickLis
         };
 
     }
+
+    /**
+     * Création d'un broadcast receiver qui permet d'écouter les évènements de type "connection bluetooth"
+     */
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+
+                // Discovery has found a device. Get the BluetoothDevice
+                // object and its info from the Intent.
+                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                String deviceName = device.getName();
+                String deviceHardwareAddress = device.getAddress(); // MAC address
+                int deviceClass = device.getBluetoothClass().getDeviceClass();
+                if (BLUETOOTH_DEVICE_NAME.equalsIgnoreCase(deviceName) && BLUETOOTH_DEVICE_CLASS == deviceClass) {
+
+                    Log.d(TAG_LOG,  String.format("BLUETOOTH - CH2T discovered : %s - %d - %s",
+                            deviceName, deviceClass, deviceHardwareAddress));
+                }
+            }
+        }
+    };
 
     /**
      * Récupération de l'adapter bluetooth
@@ -93,27 +124,10 @@ public class CornHole2Turbo extends AppCompatActivity implements View.OnClickLis
         }
     }
 
-    // Create a BroadcastReceiver for ACTION_FOUND.
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-
-                // Discovery has found a device. Get the BluetoothDevice
-                // object and its info from the Intent.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                int deviceClass = device.getBluetoothClass().getDeviceClass();
-                if (BLUETOOTH_DEVICE_NAME.equalsIgnoreCase(deviceName) && BLUETOOTH_DEVICE_CLASS == deviceClass) {
-
-                    Log.d(TAG_LOG,  String.format("BLUETOOTH - CH2T discovered : %s - %d - %s",
-                            deviceName, deviceClass, deviceHardwareAddress));
-                }
-            }
-        }
-    };
-
+    /**
+     * Découverte du sex.. euh du bluetooth
+     * @param connectIcon icon qui a été cliquée
+     */
     public void discoverBluetooth(View connectIcon) {
         // Vérification si bluetooth activé
         verifyBluetooth();
@@ -142,8 +156,4 @@ public class CornHole2Turbo extends AppCompatActivity implements View.OnClickLis
         unregisterReceiver(receiver);
     }
 
-    @Override
-    public void onClick(View view) {
-        discoverBluetooth(view);
-    }
 }
