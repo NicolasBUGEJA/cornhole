@@ -1,3 +1,24 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Corn Hole 2 Turbo</string>
+
+    <!--  Game -->
+    <string name="not_connected">Vous n\'êtes pas connecté à une planche</string>
+    <string name="bt_not_enabled_leaving">Le Bluetooth n\'est pas disponible sur votre téléphone. Corn Hole 2 Turbo va s\'arrêter.</string>
+    <string name="title_connecting">connexion...</string>
+    <string name="title_connected_to">connecté à <xliff:g id="device_name">%1$s</xliff:g></string>
+    <string name="title_not_connected">non connecté</string>
+
+    <!--  DeviceListActivity -->
+    <string name="scanning">scan des planches...</string>
+    <string name="select_device">sélectionnez une planche</string>
+    <string name="none_paired">Aucune planche appairée</string>
+    <string name="none_found">Aucune planche trouvée</string>
+    <string name="title_paired_devices">Planches appairées</string>
+    <string name="title_other_devices">Autres planches</string>
+    <string name="button_scan">Scan</string>
+
+    <!-- Options Menu -->
+    <!--<string name="secure_connect">Connect a device - Secure</string>
+    <string name="insecure_connect">Connect a device - Insecure</string>
+    <string name="discoverable">Make discoverable</string>-->
 </resources>

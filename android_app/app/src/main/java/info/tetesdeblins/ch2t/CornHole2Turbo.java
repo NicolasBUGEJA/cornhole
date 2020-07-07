@@ -1,103 +1,192 @@
 package info.tetesdeblins.ch2t;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-
-import java.util.Set;
-import java.util.UUID;
+import androidx.fragment.app.FragmentActivity;
 
 public class CornHole2Turbo extends AppCompatActivity {
+    // Debugging
+    private static final String TAG = Constants.TAG_LOG + " MainActivity";
 
-    int REQUEST_ENABLE_BLUETOOTH = 0;
+    // Codes pour les Intents (entre activités)
+    private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
+    private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
+    private static final int REQUEST_ENABLE_BT = 3;
+
+    // Buffer pour les messages en provenance de la planche (pour du debug éventuel)
+    private StringBuffer outStringBuffer;
+
     BluetoothAdapter bluetoothAdapter = null;
+    BluetoothService bluetoothService = null;
+    String connectedDeviceName = null;
 
-    // Tag utilisé pour préfixer les logs
-    public final static String TAG_LOG = "CH2T";
-
-    // Nom du device bluetooth de la planche
-    public final static String BLUETOOTH_DEVICE_NAME = "CORN HOLE 2 TURBO";
-
-    // Classe du device bluetooth de la planche
-    public final static int BLUETOOTH_DEVICE_CLASS = 7936;
-
-    // UUID de l'application Android
-    public final static UUID BLUETOOTH_ANDROID_UUID = UUID.fromString("a23f621e-bca4-11ea-b3de-0242ac130004");
-
-    // Listener sur le click sur le bouton bluetooth
+    // Listener sur le click sur le bouton BLUETOOTH
     private View.OnClickListener bluetoothIconListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            discoverBluetooth(view);
+            showDeviceListActivity();
         }
     };
 
+    // Listener sur le click sur le bouton START
+    private View.OnClickListener startGameListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            startGame();
+        }
+    };
+
+    // A la création de l'appli
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-//        setSystemUiVisibility(
-//                SYSTEM_UI_FLAG_IMMERSIVE,
-//                SYSTEM_UI_FLAG_FULLSCREEN,
-//                SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+
+        // On cache kes menus android
+        hideSystemUI();
 
         // Ajout du listener sur le bouton de connection bluetooth
+        // TODO utiliser les fragments..
         this.findViewById(R.id.connect_icon).setOnClickListener(bluetoothIconListener);
+        // TODO NICO !!! this.findViewById(R.id.start_button).setOnClickListener(startGameListener);
+    }
 
-        // Get the default adapter and verify
-        try {
-            bluetoothAdapter = getBluetoothAdapter();
-            verifyBluetooth();
-        } catch (Exception e) {
-            e.printStackTrace();
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            hideSystemUI();
         }
+    }
 
-        IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
-        registerReceiver(receiver, filter);
-
-        BluetoothProfile.ServiceListener profileListener = new BluetoothProfile.ServiceListener() {
-            public void onServiceConnected(int profile, BluetoothProfile proxy) {
-                System.out.println(profile);
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Performing this check in onResume() covers the case in which BT was
+        // not enabled during onStart(), so we were paused to enable it...
+        // onResume() will be called when ACTION_REQUEST_ENABLE activity returns.
+        if (bluetoothService != null) {
+            // Only if the state is STATE_NONE, do we know that we haven't started already
+            if (bluetoothService.getState() == BluetoothService.STATE_NONE) {
+                // Start the Bluetooth chat services
+                bluetoothService.start();
             }
-            public void onServiceDisconnected(int profile) {
-                System.out.println(profile);
-            }
-        };
+        }
+    }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (bluetoothService != null) {
+            bluetoothService.stop();
+        }
+    }
+
+
+    private CornHole2Turbo getActivity() {
+        return this;
     }
 
     /**
-     * Création d'un broadcast receiver qui permet d'écouter les évènements de type "connection bluetooth"
+     * The Handler that gets information back from the BluetoothService
      */
-    private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-
-                // Discovery has found a device. Get the BluetoothDevice
-                // object and its info from the Intent.
-                BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                int deviceClass = device.getBluetoothClass().getDeviceClass();
-                if (BLUETOOTH_DEVICE_NAME.equalsIgnoreCase(deviceName) && BLUETOOTH_DEVICE_CLASS == deviceClass) {
-
-                    Log.d(TAG_LOG,  String.format("BLUETOOTH - CH2T discovered : %s - %d - %s",
-                            deviceName, deviceClass, deviceHardwareAddress));
-                }
+    private final Handler messageHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            FragmentActivity activity = getActivity();
+            switch (msg.what) {
+                case Constants.MESSAGE_STATE_CHANGE:
+                    switch (msg.arg1) {
+                        case BluetoothService.STATE_CONNECTED:
+                            //setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
+                            break;
+                        case BluetoothService.STATE_CONNECTING:
+                            //setStatus(R.string.title_connecting);
+                            break;
+                        case BluetoothService.STATE_LISTEN:
+                        case BluetoothService.STATE_NONE:
+                            //setStatus(R.string.title_not_connected);
+                            break;
+                    }
+                    break;
+                case Constants.MESSAGE_WRITE:
+                    byte[] writeBuf = (byte[]) msg.obj;
+                    // construct a string from the buffer
+                    String writeMessage = new String(writeBuf);
+                    //mConversationArrayAdapter.add("Me:  " + writeMessage);
+                    break;
+                case Constants.MESSAGE_READ:
+                    byte[] readBuf = (byte[]) msg.obj;
+                    // construct a string from the valid bytes in the buffer
+                    String readMessage = new String(readBuf, 0, msg.arg1);
+                    //mConversationArrayAdapter.add(mConnectedDeviceName + ":  " + readMessage);
+                    break;
+                case Constants.MESSAGE_DEVICE_NAME:
+                    // save the connected device's name
+                    connectedDeviceName = msg.getData().getString(Constants.HANDLER_DEVICE_NAME);
+                    Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
+                    break;
+                case Constants.MESSAGE_TOAST:
+                    Toast.makeText(activity, msg.getData().getString(Constants.HANDLER_TOAST), Toast.LENGTH_SHORT).show();
+                    break;
             }
         }
     };
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case REQUEST_CONNECT_DEVICE_SECURE:
+                // When DeviceListActivity returns with a device to connect
+                if (resultCode == Activity.RESULT_OK) {
+                    connectDevice(data, true);
+                }
+                break;
+            case REQUEST_CONNECT_DEVICE_INSECURE:
+                // When DeviceListActivity returns with a device to connect
+                if (resultCode == Activity.RESULT_OK) {
+                    connectDevice(data, false);
+                }
+                break;
+            case REQUEST_ENABLE_BT:
+                // When the request to enable Bluetooth returns
+                if (resultCode == Activity.RESULT_OK) {
+                    // Bluetooth is now enabled, so set up a chat session
+                    setupBluetooth();
+                } else {
+                    // User did not enable Bluetooth or an error occurred
+                    Log.d(TAG, "BT not enabled");
+                    Toast.makeText(getActivity(), R.string.bt_not_enabled_leaving,
+                            Toast.LENGTH_SHORT).show();
+                    getActivity().finish();
+                }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    /**
+     * Etablissement de la connexion avec la planche
+     *
+     * @param data   An {@link Intent} with {@link DeviceListActivity#EXTRA_DEVICE_ADDRESS} extra.
+     * @param secure Socket Security type - Secure (true) , Insecure (false)
+     */
+    private void connectDevice(Intent data, boolean secure) {
+        // Get the device MAC address
+        String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        // Get the BluetoothDevice object
+        BluetoothDevice device = getBluetoothAdapter().getRemoteDevice(address);
+        // Attempt to connect to the device
+        bluetoothService.connect(device, secure);
+    }
 
     /**
      * Récupération de l'adapter bluetooth
@@ -107,53 +196,79 @@ public class CornHole2Turbo extends AppCompatActivity {
         if (bluetoothAdapter == null) {
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (bluetoothAdapter == null) {
-                Log.w(TAG_LOG, "BLUETOOTH - NO BLUETOOTH");
+                Log.w(TAG, "BLUETOOTH - NO BLUETOOTH");
+                Toast.makeText(this, "Le Bluetooth n'est pas disponible sur votre téléphone", Toast.LENGTH_LONG).show();
+               // this.finish();
             }
         }
         return bluetoothAdapter;
     }
 
+    public void showDeviceListActivity() {
+        Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
+        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+    }
+
+    public void setupBluetooth() {
+        // Initialize the BluetoothChatService to perform bluetooth connections
+        bluetoothService = new BluetoothService(getActivity(), messageHandler);
+    }
+
+
     /**
-     * Vérifie si le bluetooth est activé
-     * Si non : demande à l'utiliateur de l'activer
+     * Set up the UI and background operations for a new game.
      */
-    public void verifyBluetooth() {
-        if (!getBluetoothAdapter().isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
+    private void startGame() {
+        Log.d(TAG, "startGame()");
+
+        // On initialisera les listeners si pas déjà fait
+        // TODO
+//        button.setOnClickListener(new View.OnClickListener() {
+//            public void onClick(View v) {
+//                // Construction du score
+//                String score = "18-4";
+//                sendScore(message);
+//            }
+//        });
+    }
+
+    /**
+     * Send score.
+     * @param score The score to send.
+     */
+    private void sendScore(String score) {
+        // Check that we're actually connected before trying anything
+        if (bluetoothService.getState() != BluetoothService.STATE_CONNECTED) {
+            Toast.makeText(getActivity(), R.string.not_connected, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Check that there's actually something to send
+        if (score.length() > 0) {
+            // Get the message bytes and tell the BluetoothService to write
+            byte[] send = score.getBytes();
+            bluetoothService.write(send);
         }
     }
 
     /**
-     * Découverte du sex.. euh du bluetooth
-     * @param connectIcon icon qui a été cliquée
+     * Hide system UI
      */
-    public void discoverBluetooth(View connectIcon) {
-        // Vérification si bluetooth activé
-        verifyBluetooth();
-
-        // Recherche dans les device déjà appairés pour retrouver la planche
-        Set<BluetoothDevice> pairedDevices = getBluetoothAdapter().getBondedDevices();
-
-        // TODO !!!
-        if (pairedDevices.size() > 0) {
-            // There are paired devices. Get the name and address of each paired device.
-            for (BluetoothDevice device : pairedDevices) {
-                String deviceName = device.getName();
-                String deviceHardwareAddress = device.getAddress(); // MAC address
-                Log.d(TAG_LOG,  String.format("BLUETOOTH - Appaired device discovered : %s - %s", deviceName, deviceHardwareAddress));
-            }
-        }
-
-        getBluetoothAdapter().startDiscovery();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // Don't forget to unregister the ACTION_FOUND receiver.
-        unregisterReceiver(receiver);
+    private void hideSystemUI() {
+        // Enables regular immersive mode.
+        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
+        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+        View decorView = getWindow().getDecorView();
+        decorView.setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE
+                        // Set the content to appear under the system bars so that the
+                        // content doesn't resize when the system bars hide and show.
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                        // Hide the nav bar and status bar
+                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
     }
 
 }
