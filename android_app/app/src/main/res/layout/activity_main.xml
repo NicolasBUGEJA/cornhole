@@ -1,47 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    tools:context=".CornHole2Turbo">
+    android:orientation="vertical">
 
-    <ImageView
-        android:id="@+id/title"
-        android:layout_width="wrap_content"
-        android:layout_height="255dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/title" />
-
-    <ImageView
-        android:id="@+id/earth"
+    <LinearLayout
+        android:id="@+id/log_fragment_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/connect_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/title"
-        app:srcCompat="@drawable/earth" />
+        android:layout_height="0px"
+        android:layout_weight="1"
+        android:visibility="gone">
+        <fragment
+            android:id="@+id/log_fragment"
+            android:name="info.tetesdeblins.ch2t.common.logger.LogFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1" />
+    </LinearLayout>
 
-    <ImageView
-        android:id="@+id/connect_text"
+    <FrameLayout
+        android:id="@+id/main_content_fragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@+id/connect_icon"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/pleaseconnect" />
+        android:layout_height="0px"
+        android:layout_weight="3" />
 
-    <ImageView
-        android:id="@+id/connect_icon"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:srcCompat="@drawable/iconconnect" />
+</LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>

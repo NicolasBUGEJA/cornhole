@@ -1,5 +1,6 @@
 package info.tetesdeblins.ch2t;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -7,66 +8,78 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
-public class CornHole2Turbo extends AppCompatActivity {
-    // Debugging
-    private static final String TAG = Constants.TAG_LOG + " MainActivity";
+import info.tetesdeblins.ch2t.common.logger.Log;
 
-    // Codes pour les Intents (entre activités)
+
+public class MainFragment extends Fragment {
+    // Debugging TAG
+    private static final String TAG = Constants.TAG_LOG + " MainFragment";
+
+    // Intent among activities
     private static final int REQUEST_CONNECT_DEVICE_SECURE = 1;
     private static final int REQUEST_CONNECT_DEVICE_INSECURE = 2;
     private static final int REQUEST_ENABLE_BT = 3;
 
-    // Buffer pour les messages en provenance de la planche (pour du debug éventuel)
+    // Output buffer for incoming messages from the board (for debug purposes)
     private StringBuffer outStringBuffer;
 
+    // The bluetooth adapter
     BluetoothAdapter bluetoothAdapter = null;
-    BluetoothService bluetoothService = null;
-    String connectedDeviceName = null;
 
-    // Listener sur le click sur le bouton BLUETOOTH
-    private View.OnClickListener bluetoothIconListener = new View.OnClickListener() {
+    // The bluetooth service used to communicate with the arduino/board
+    BluetoothService bluetoothService = null;
+
+    // The connected board name
+    String connectedBoardName = null;
+
+    // Listener for click on BLUETOOTH button
+    private View.OnClickListener bluetoothButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             showDeviceListActivity();
         }
     };
 
-    // Listener sur le click sur le bouton START
-    private View.OnClickListener startGameListener = new View.OnClickListener() {
+    // Listener for click on START button
+    private View.OnClickListener startButtonListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             startGame();
         }
     };
 
-    // A la création de l'appli
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        // On cache kes menus android
-        hideSystemUI();
-
-        // Ajout du listener sur le bouton de connection bluetooth
-        // TODO utiliser les fragments..
-        this.findViewById(R.id.connect_icon).setOnClickListener(bluetoothIconListener);
-        // TODO NICO !!! this.findViewById(R.id.start_button).setOnClickListener(startGameListener);
+        setHasOptionsMenu(true);
+        getBluetoothAdapter();
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
-        super.onWindowFocusChanged(hasFocus);
-        if (hasFocus) {
-            hideSystemUI();
-        }
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        // Retrieve useful elements
+        ImageView connectButton = view.findViewById(R.id.connect_icon);
+        // TODO NICO ImageView startButton = view.findViewById(R.id.start_icon);
+
+        // Set the listeners
+        connectButton.setOnClickListener(bluetoothButtonListener);
+        // TODO NICO startButton.setOnClickListener(startButtonListener);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_main, container, false);
     }
 
     @Override
@@ -85,16 +98,11 @@ public class CornHole2Turbo extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         if (bluetoothService != null) {
             bluetoothService.stop();
         }
-    }
-
-
-    private CornHole2Turbo getActivity() {
-        return this;
     }
 
     /**
@@ -108,14 +116,14 @@ public class CornHole2Turbo extends AppCompatActivity {
                 case Constants.MESSAGE_STATE_CHANGE:
                     switch (msg.arg1) {
                         case BluetoothService.STATE_CONNECTED:
-                            //setStatus(getString(R.string.title_connected_to, mConnectedDeviceName));
+                            setConnectionStatus(getString(R.string.title_connected_to, connectedBoardName));
                             break;
                         case BluetoothService.STATE_CONNECTING:
-                            //setStatus(R.string.title_connecting);
+                            setConnectionStatus(R.string.title_connecting);
                             break;
                         case BluetoothService.STATE_LISTEN:
                         case BluetoothService.STATE_NONE:
-                            //setStatus(R.string.title_not_connected);
+                            setConnectionStatus(R.string.title_not_connected);
                             break;
                     }
                     break;
@@ -133,8 +141,8 @@ public class CornHole2Turbo extends AppCompatActivity {
                     break;
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
-                    connectedDeviceName = msg.getData().getString(Constants.HANDLER_DEVICE_NAME);
-                    Toast.makeText(activity, "Connected to " + connectedDeviceName, Toast.LENGTH_SHORT).show();
+                    connectedBoardName = msg.getData().getString(Constants.HANDLER_DEVICE_NAME);
+                    Toast.makeText(activity, "Connected to " + connectedBoardName, Toast.LENGTH_SHORT).show();
                     break;
                 case Constants.MESSAGE_TOAST:
                     Toast.makeText(activity, msg.getData().getString(Constants.HANDLER_TOAST), Toast.LENGTH_SHORT).show();
@@ -143,6 +151,12 @@ public class CornHole2Turbo extends AppCompatActivity {
         }
     };
 
+    /**
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_CONNECT_DEVICE_SECURE:
@@ -197,7 +211,7 @@ public class CornHole2Turbo extends AppCompatActivity {
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (bluetoothAdapter == null) {
                 Log.w(TAG, "BLUETOOTH - NO BLUETOOTH");
-                Toast.makeText(this, "Le Bluetooth n'est pas disponible sur votre téléphone", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Le Bluetooth n'est pas disponible sur votre téléphone", Toast.LENGTH_LONG).show();
                // this.finish();
             }
         }
@@ -252,23 +266,19 @@ public class CornHole2Turbo extends AppCompatActivity {
     }
 
     /**
-     * Hide system UI
+     * Updates the status on the connection status string.
+     * @param resId a string resource ID
      */
-    private void hideSystemUI() {
-        // Enables regular immersive mode.
-        // For "lean back" mode, remove SYSTEM_UI_FLAG_IMMERSIVE.
-        // Or for "sticky immersive," replace it with SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-        View decorView = getWindow().getDecorView();
-        decorView.setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_IMMERSIVE
-                        // Set the content to appear under the system bars so that the
-                        // content doesn't resize when the system bars hide and show.
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                        // Hide the nav bar and status bar
-                        | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_FULLSCREEN);
+    private void setConnectionStatus(int resId) {
+        // TODO change text for connection status
+    }
+
+    /**
+     * Updates the status on the connection status string.
+     * @param subTitle status
+     */
+    private void setConnectionStatus(CharSequence subTitle) {
+        // TODO change text for connection status
     }
 
 }

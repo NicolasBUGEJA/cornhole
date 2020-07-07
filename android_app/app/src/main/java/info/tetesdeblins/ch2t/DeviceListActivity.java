@@ -24,7 +24,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -34,6 +33,8 @@ import android.widget.TextView;
 
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import info.tetesdeblins.ch2t.common.logger.Log;
 
 /**
  * This Activity appears as a dialog. It lists any paired devices and
