@@ -18,19 +18,22 @@ public interface Constants {
     public static final String HANDLER_DEVICE_NAME = "device_name";
     public static final String HANDLER_TOAST = "toast";
 
-    // Tag utilisé pour préfixer les logs
+    // TAG for log prefix
     public static final String TAG_LOG = "CH2T";
 
-    // Nom du device bluetooth de la planche
+    // Generic name for CH2T arduino bluetooth device
     // TODO Rendre la récupération de la planche dynamique
     public static final String BLUETOOTH_DEVICE_NAME = "CORN HOLE 2 TURBO";
 
-    // Classe du device bluetooth de la planche
+    // CH2T arduino bluetooth device class
+    // TODO trouver d'autres identifiants uniques du type de capteur, un truc propre à CH2T
     public static final int BLUETOOTH_DEVICE_CLASS = 7936;
 
-    // UUID de l'application Android
+    // UUID for secure bluetooth connexion
+    // Note : Not used by now since the bluetooth module used is kinda basic
     public static final UUID BLUETOOTH_ANDROID_UUID_SECURE = UUID.fromString("a23f621e-bca4-11ea-b3de-0242ac130004");
 
-    // UUID de l'application Android
-    public static final UUID BLUETOOTH_ANDROID_UUID_INSECURE = UUID.fromString("4cf03a56-bfc7-11ea-b3de-0242ac130004");
+    // UUID for insecure bluetooth connexion
+    // Note : The generic UUID used here is mandatory for serial bluetooth (like the one used in CH2T..)
+    public static final UUID BLUETOOTH_ANDROID_UUID_INSECURE = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 }

@@ -1,12 +1,15 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Corn Hole 2 Turbo</string>
 
-    <!--  Game -->
+    <!--  Bluetooth -->
     <string name="not_connected">Vous n\'êtes pas connecté à une planche</string>
     <string name="bt_not_enabled_leaving">Le Bluetooth n\'est pas disponible sur votre téléphone. Corn Hole 2 Turbo va s\'arrêter.</string>
+    <string name="bt_not_authorized">Cette autorisation est nécessaire pour se connecter à la planche. Vous ne pourrez pas appairer la planche à l\'application Corn Hole 2 Turbo.</string>
     <string name="title_connecting">connexion...</string>
     <string name="title_connected_to">connecté à <xliff:g id="device_name">%1$s</xliff:g></string>
     <string name="title_not_connected">non connecté</string>
+
+    <string name="connected_to_board">Vous êtes connecté à <xliff:g id="device_name">%1$s</xliff:g>. Vous pouvez commencer une nouvelle partie !</string>
 
     <!--  DeviceListActivity -->
     <string name="scanning">scan des planches...</string>

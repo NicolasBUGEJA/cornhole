@@ -1,6 +1,6 @@
 package info.tetesdeblins.ch2t;
 
-import android.app.ActionBar;
+import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -15,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
@@ -63,6 +65,20 @@ public class MainFragment extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         getBluetoothAdapter();
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // If BT is not on, request that it be enabled.
+        // setupChat() will then be called during onActivityResult
+        if (!getBluetoothAdapter().isEnabled()) {
+            Intent enableIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+            startActivityForResult(enableIntent, REQUEST_ENABLE_BT);
+            // Otherwise, setup the chat session
+        } else if (bluetoothService == null) {
+            setupBluetooth();
+        }
     }
 
     @Override
@@ -142,7 +158,8 @@ public class MainFragment extends Fragment {
                 case Constants.MESSAGE_DEVICE_NAME:
                     // save the connected device's name
                     connectedBoardName = msg.getData().getString(Constants.HANDLER_DEVICE_NAME);
-                    Toast.makeText(activity, "Connected to " + connectedBoardName, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(activity, getString(R.string.connected_to_board, connectedBoardName), Toast.LENGTH_SHORT).show();
+                    //
                     break;
                 case Constants.MESSAGE_TOAST:
                     Toast.makeText(activity, msg.getData().getString(Constants.HANDLER_TOAST), Toast.LENGTH_SHORT).show();
@@ -160,25 +177,30 @@ public class MainFragment extends Fragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch (requestCode) {
             case REQUEST_CONNECT_DEVICE_SECURE:
+                Log.d(TAG, "onActivityResult() - REQUEST_CONNECT_DEVICE_SECURE");
                 // When DeviceListActivity returns with a device to connect
                 if (resultCode == Activity.RESULT_OK) {
                     connectDevice(data, true);
                 }
                 break;
             case REQUEST_CONNECT_DEVICE_INSECURE:
+                Log.d(TAG, "onActivityResult() - REQUEST_CONNECT_DEVICE_INSECURE");
                 // When DeviceListActivity returns with a device to connect
                 if (resultCode == Activity.RESULT_OK) {
                     connectDevice(data, false);
                 }
                 break;
             case REQUEST_ENABLE_BT:
+                Log.d(TAG, "onActivityResult() - REQUEST_ENABLE_BT");
                 // When the request to enable Bluetooth returns
                 if (resultCode == Activity.RESULT_OK) {
+                    Log.d(TAG, "- bluetooth enabled");
                     // Bluetooth is now enabled, so set up a chat session
                     setupBluetooth();
                 } else {
                     // User did not enable Bluetooth or an error occurred
-                    Log.d(TAG, "BT not enabled");
+                    //TODO A fixer, en l'état c'est merdique pour un éventuel mode offline
+                    Log.d(TAG, "- bluetooth NOT enabled");
                     Toast.makeText(getActivity(), R.string.bt_not_enabled_leaving,
                             Toast.LENGTH_SHORT).show();
                     getActivity().finish();
@@ -188,16 +210,20 @@ public class MainFragment extends Fragment {
     }
 
     /**
-     * Etablissement de la connexion avec la planche
+     * Connection to the board
      *
-     * @param data   An {@link Intent} with {@link DeviceListActivity#EXTRA_DEVICE_ADDRESS} extra.
+     * @param data   An {@link Intent} with {@link BoardListActivity#EXTRA_BOARD_ADDRESS} extra.
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
     private void connectDevice(Intent data, boolean secure) {
+        Log.d(TAG, "connectDevice()");
         // Get the device MAC address
-        String address = data.getExtras().getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        String address = data.getExtras().getString(BoardListActivity.EXTRA_BOARD_ADDRESS);
+        Log.d(TAG, String.format("- secure : %b , board address : %s", secure, address));
+
         // Get the BluetoothDevice object
         BluetoothDevice device = getBluetoothAdapter().getRemoteDevice(address);
+
         // Attempt to connect to the device
         bluetoothService.connect(device, secure);
     }
@@ -207,20 +233,22 @@ public class MainFragment extends Fragment {
      * @return adapter bluetooth
      */
     public BluetoothAdapter getBluetoothAdapter() {
+        Log.d(TAG, "getBluetoothAdapter()");
         if (bluetoothAdapter == null) {
+            Log.d(TAG, "- getDefaultAdapter called");
             bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
             if (bluetoothAdapter == null) {
-                Log.w(TAG, "BLUETOOTH - NO BLUETOOTH");
-                Toast.makeText(getActivity(), "Le Bluetooth n'est pas disponible sur votre téléphone", Toast.LENGTH_LONG).show();
-               // this.finish();
+                Log.w(TAG, "- NO BLUETOOTH ADAPTER, finishing activity");
+                Toast.makeText(getActivity(), R.string.bt_not_enabled_leaving, Toast.LENGTH_LONG).show();
+                getActivity().finish();
             }
         }
         return bluetoothAdapter;
     }
 
     public void showDeviceListActivity() {
-        Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
-        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_SECURE);
+        Intent serverIntent = new Intent(getActivity(), BoardListActivity.class);
+        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE_INSECURE);
     }
 
     public void setupBluetooth() {

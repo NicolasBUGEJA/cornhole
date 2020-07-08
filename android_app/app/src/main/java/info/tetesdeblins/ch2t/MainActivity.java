@@ -16,12 +16,16 @@
 
 package info.tetesdeblins.ch2t;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
 
 import info.tetesdeblins.ch2t.common.logger.Log;
@@ -36,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
     public static final String TAG = Constants.TAG_LOG + " MainActivity";
 
+    // Manifest autorization
+    private static final int MANIFEST_ACCESS_FINE_LOCATION = 200;
+
     // Whether the Log Fragment is currently shown
     private boolean mLogShown;
 
@@ -47,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
         // Hiding android menus
         hideSystemUI();
 
+        // Ask for bluetooth permissions
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MANIFEST_ACCESS_FINE_LOCATION);
+
         if (savedInstanceState == null) {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             MainFragment fragment = new MainFragment();
@@ -54,7 +64,6 @@ public class MainActivity extends AppCompatActivity {
             transaction.commit();
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -116,6 +125,25 @@ public class MainActivity extends AppCompatActivity {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
             hideSystemUI();
+        }
+    }
+
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MANIFEST_ACCESS_FINE_LOCATION: {
+                Log.d(TAG, "onRequestPermissionsResult() - ACCESS_FINE_LOCATION");
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        Log.d(TAG, "- Permission granted for ACCESS_FINE_LOCATION");
+                    }
+                    else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                        Log.d(TAG, "- Permission denied for ACCESS_FINE_LOCATION");
+                        Toast.makeText(this, R.string.bt_not_authorized, Toast.LENGTH_SHORT).show();
+                    }
+                }
+                return;
+            }
         }
     }
 

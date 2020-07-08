@@ -53,15 +53,26 @@ public class BluetoothService {
     }
 
     /**
-     * Update UI title according to the current state of the chat connection
+     * Send current state of the bluetooth connection back to the UI Activity
      */
-    private synchronized void updateUserInterfaceTitle() {
+    private synchronized void sendMessageStateChange() {
         state = getState();
-        Log.d(TAG, "updateUserInterfaceTitle() " + newState + " -> " + state);
+        Log.d(TAG, String.format("sendMessageStateChange() - oldState=%d , newState=%d", newState , state));
         newState = state;
-
         // Give the new state to the Handler so the UI Activity can update
         handler.obtainMessage(Constants.MESSAGE_STATE_CHANGE, newState, -1).sendToTarget();
+    }
+
+    /**
+     * Send the name of the connected device back to the UI Activity
+     */
+    private synchronized void sendMessageDeviceName(String deviceName) {
+        Log.d(TAG, String.format("sendMessageDeviceName() - deviceName=%s", deviceName));
+        Message msg = handler.obtainMessage(Constants.MESSAGE_DEVICE_NAME);
+        Bundle bundle = new Bundle();
+        bundle.putString(Constants.HANDLER_DEVICE_NAME, deviceName);
+        msg.setData(bundle);
+        handler.sendMessage(msg);
     }
 
     /**
@@ -100,7 +111,7 @@ public class BluetoothService {
             acceptThread1.start();
         }
         // Update UI title
-        updateUserInterfaceTitle();
+        sendMessageStateChange();
     }
 
     /**
@@ -110,11 +121,12 @@ public class BluetoothService {
      * @param secure Socket Security type - Secure (true) , Insecure (false)
      */
     public synchronized void connect(BluetoothDevice device, boolean secure) {
-        Log.d(TAG, "connect to: " + device);
+        Log.d(TAG, String.format("connect() - device=%s , secure=%b", device.toString(), secure));
 
         // Cancel any thread attempting to make a connection
         if (state == STATE_CONNECTING) {
             if (connectThread != null) {
+                Log.d(TAG, "- call connectThread.cancel()");
                 connectThread.cancel();
                 connectThread = null;
             }
@@ -122,15 +134,17 @@ public class BluetoothService {
 
         // Cancel any thread currently running a connection
         if (connectedThread != null) {
+            Log.d(TAG, "- call connectedThread.cancel()");
             connectedThread.cancel();
             connectedThread = null;
         }
 
         // Start the thread to connect with the given device
         connectThread = new ConnectThread(device, secure);
+        Log.d(TAG, "- call connectThread.start()");
         connectThread.start();
         // Update UI title
-        updateUserInterfaceTitle();
+        sendMessageStateChange();
     }
 
     /**
@@ -170,13 +184,10 @@ public class BluetoothService {
         connectedThread.start();
 
         // Send the name of the connected device back to the UI Activity
-        Message msg = handler.obtainMessage(Constants.MESSAGE_DEVICE_NAME);
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.HANDLER_DEVICE_NAME, device.getName());
-        msg.setData(bundle);
-        handler.sendMessage(msg);
-        // Update UI title
-        updateUserInterfaceTitle();
+        sendMessageDeviceName(device.getName());
+
+        // Send current state of the bluetooth connection back to the UI Activity
+        sendMessageStateChange();
     }
 
     /**
@@ -205,8 +216,9 @@ public class BluetoothService {
             acceptThread1 = null;
         }
         state = STATE_NONE;
-        // Update UI title
-        updateUserInterfaceTitle();
+
+        // Send current state of the bluetooth connection back to the UI Activity
+        sendMessageStateChange();
     }
 
     /**
@@ -239,8 +251,9 @@ public class BluetoothService {
         handler.sendMessage(msg);
 
         state = STATE_NONE;
-        // Update UI title
-        updateUserInterfaceTitle();
+
+        // Send current state of the bluetooth connection back to the UI Activity
+        sendMessageStateChange();
 
         // Start the service over to restart listening mode
         BluetoothService.this.start();
@@ -258,8 +271,9 @@ public class BluetoothService {
         handler.sendMessage(msg);
 
         state = STATE_NONE;
-        // Update UI title
-        updateUserInterfaceTitle();
+        
+        // Send current state of the bluetooth connection back to the UI Activity
+        sendMessageStateChange();
 
         // Start the service over to restart listening mode
         BluetoothService.this.start();
