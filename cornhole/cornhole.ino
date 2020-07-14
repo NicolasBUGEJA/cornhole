@@ -226,6 +226,8 @@ void drawCentreString(const String &buf, int x, int y)
 }
 
 void showScore(String blue, String red) {
+  
+  Serial.println("MATRIX - Score Received ; left : " + blue + ", right : " + red);
   matrix.clear();
 
   //matrix.fill(matrix.Color(239, 223, 14), 110, 2);
@@ -252,6 +254,8 @@ void showScore(String blue, String red) {
   }else{
     bufferBlue = blue;
   }*/
+  
+  Serial.println("MATRIX - Draw ; left : " + blue);
   drawCentreString(blue, 7, 7);
 
   //matrix.setTextColor(MATRIX_COLORS[3]);
@@ -265,6 +269,8 @@ void showScore(String blue, String red) {
   }else{
     bufferRed = red;
   }*/
+    
+  Serial.println("MATRIX - Draw ; right : " + red);
   drawCentreString(red, 25, 7);
   
   
