@@ -20,6 +20,8 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
+import java.util.Random;
+
 import info.tetesdeblins.ch2t.common.logger.Log;
 
 
@@ -85,11 +87,11 @@ public class MainFragment extends Fragment {
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         // Retrieve useful elements
         ImageView connectButton = view.findViewById(R.id.connect_icon);
-        // TODO NICO ImageView startButton = view.findViewById(R.id.start_icon);
+        ImageView startButton = view.findViewById(R.id.earth);
 
         // Set the listeners
         connectButton.setOnClickListener(bluetoothButtonListener);
-        // TODO NICO startButton.setOnClickListener(startButtonListener);
+        startButton.setOnClickListener(startButtonListener);
     }
 
     @Override
@@ -262,6 +264,12 @@ public class MainFragment extends Fragment {
      */
     private void startGame() {
         Log.d(TAG, "startGame()");
+        Random r = new Random();
+        int low = 0;
+        int high = 21;
+        int resultLeft = r.nextInt(high-low) + low;
+        int resultRight = r.nextInt(high-low) + low;
+        sendScore("|S" + resultLeft + "-" + resultRight);
 
         // On initialisera les listeners si pas déjà fait
         // TODO

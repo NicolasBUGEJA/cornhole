@@ -271,7 +271,7 @@ public class BluetoothService {
         handler.sendMessage(msg);
 
         state = STATE_NONE;
-        
+
         // Send current state of the bluetooth connection back to the UI Activity
         sendMessageStateChange();
 
