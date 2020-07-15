@@ -10,9 +10,17 @@
 
 /************ CONSTANTS AND CONFIGURATION ************/
 
-// DEBUG MODE
-//TODO Improve debug mode..
-const bool DEBUG = true;
+// DEBUG MODE [uncomment for debugging]
+#define DEBUG
+
+// For debug logs and brightness adjustments
+#ifdef DEBUG
+ #define DEBUG_PRINT(x) Serial.println(x)
+ #define MATRIX_BRIGHTNESS 25
+#else
+ #define DEBUG_PRINT(x)
+ #define MATRIX_BRIGHTNESS 75
+#endif
 
 // Program version
 const String VERSION = "1.0.0";
@@ -22,7 +30,8 @@ const int HC06_BAUDRATE = 9600;
 const int HC06_PINS[2] = {4, 5}; // PINS on the arduino board
 const String HC06_DEFAULT_NAME = "CORN HOLE 2 TURBO";
 const String HC06_DEFAULT_CODE = "8013";
-const char HC06_HEADER = '|';
+const char HC06_START_MARKER = '<';
+const char HC06_END_MARKER = '>';
 
 // Init instance of HC06
 SoftwareSerial hc06(HC06_PINS[0], HC06_PINS[1]);
@@ -30,11 +39,10 @@ SoftwareSerial hc06(HC06_PINS[0], HC06_PINS[1]);
 // Matrix module configuration
 const int MATRIX_PIN = 2;
 const bool MATRIX_TEXT_WRAP = false;
-const int MATRIX_BRIGHTNESS = 5;
 const int MATRIX_TEXT_SIZE = 1;
 
 // Init instance of Matrix
-Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, MATRIX_PIN,
+Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(32, 8, 2,
   NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT + NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG,
   NEO_GRB + NEO_KHZ800);
 
@@ -55,7 +63,10 @@ const char CMD_SET_COLORS = 'C';
 /** (variables used during
      the program lifetime) **/
 
-String datas = ""; // Last command received from the android APP
+const byte numChars = 32;
+char receivedChars[numChars];
+boolean newData = false;
+
 int scoreLeft = 0;
 int scoreRight = 0;
 bool btReady = false;
@@ -71,19 +82,15 @@ String s_wait = "CORN HOLE 2 TURBO WAITING FOR PLAYERS...";
  */
 void setup() {
   Serial.begin(9600);
-  Serial.println("STARTING CORN HOLE 2 TURBO");  
-  
-  Serial.println("-- INIT HC06 MODULE");  
-  initHC06();
-  
-  Serial.println("-- INIT MATRIX MODULE");  
-  initMatrix();
-  
-  Serial.println("-- SHOW WAITING TEXT");
+  DEBUG_PRINT("STARTING CORN HOLE 2 TURBO");  
+  DEBUG_PRINT("-- INIT HC06 MODULE");   
+  initHC06();  
+  DEBUG_PRINT("-- INIT MATRIX MODULE");
+  initMatrix();  
+  DEBUG_PRINT("-- SHOW WAITING TEXT");
   //showWaiting();
-  delay(500);
-  
-  Serial.println("CORN HOLE 2 TURBO STARTED"); 
+  delay(500);  
+  DEBUG_PRINT("CORN HOLE 2 TURBO STARTED"); 
 }
 
 /**
@@ -91,46 +98,62 @@ void setup() {
  * Perpetual loop, waiting for new inputs...
  */
 void loop() {
-  // Write from Serial Monitor to HC06 (to send AT commands)
-  if (Serial.available()){
-    hc06.write(Serial.read());
-  }  
+    recvWithStartEndMarkers();
+    processDatas();
+}
 
-  // Write from HCO6 to Serial Monitor and save new command received
-  if (hc06.available() >= 2) { // If data is available to read    
-    Serial.println("HC06 - Data available to read");
-    delay(3);
-    if (hc06.read() == HC06_HEADER)
-    {      
-      while(hc06.available()) { // While there is more to be read, keep reading        
-        delay(3); // Delay needed to receive data from buffer
-        datas += (char)hc06.read(); // Storing the command being received
-        // (note : the HC06_HEADER has been 'removed' from buffer with the first read() call)
-      }      
-      Serial.println("HC06 - Datas received : " + datas);
-      processDatas(datas); // Process the datas
+/**
+ * Process receiving datas
+ */
+void recvWithStartEndMarkers() {
+    static boolean recvInProgress = false;
+    static byte ndx = 0;
+    char rc;
+ 
+    while (hc06.available() > 0 && newData == false) {
+        rc = hc06.read();
+
+        if (recvInProgress == true) {
+            if (rc != HC06_END_MARKER) {
+                receivedChars[ndx] = rc;
+                ndx++;
+                if (ndx >= numChars) {
+                    ndx = numChars - 1;
+                }
+            }
+            else {
+                receivedChars[ndx] = '\0'; // terminate the string
+                recvInProgress = false;
+                ndx = 0;
+                newData = true;
+            }
+        }
+
+        else if (rc == HC06_START_MARKER) {
+            recvInProgress = true;
+        }
     }
-  }
-
-  datas = ""; // Datas are emptied after being processed
 }
 
 /**
  * Process datas received from the HC06 bluetooth module
  */
-void processDatas(String datas) {
-  int dataLength = datas.length();
-  if (dataLength >= 1) {
-    char command = datas.charAt(0); // Retrieving the command
-    Serial.println("-- HC06 - Command received : " + command);
-    String commandDatas = ""; // Default command datas value
-    if (dataLength > 1) { // Retrieving the command datas if exist
-      commandDatas = datas.substring(1);
+void processDatas() {
+  if (newData == true) {
+    String datas = String(receivedChars);
+    int dataLength = datas.length();
+    if (dataLength >= 1) {
+      char command = datas.charAt(0); // Retrieving the command
+      String commandDatas = ""; // Default command datas value
+      if (dataLength > 1) { // Retrieving the command datas if exist
+        commandDatas = datas.substring(1);
+      }
+      processCommand(command, commandDatas); // Process the command
     }
-    processCommand(command, commandDatas); // Process the command
-  }
-  else {
-    Serial.println("-- HC06 - Datas length too short to be processed : " + dataLength);
+    else {
+      DEBUG_PRINT("-- HC06 - Datas length too short to be processed");
+    }
+    newData = false;
   }
 }
 
@@ -140,18 +163,18 @@ void processDatas(String datas) {
 void processCommand(char command, String commandDatas) {
   switch (command) {
     case CMD_SET_SCORE: // Change the score displayed on the matrix
-    processScoreCommand(commandDatas);
-    break;
+      processScoreCommand(commandDatas);
+      break;
     case CMD_SET_COLORS: // Change the colors used on the matrix
-    //TODO 
-    break;
+      //TODO 
+      break;
     case CMD_GET_VERSION: // Return version of the arduino program
-    //TODO return VERSION to the app
-    break;
-  default:
-    Serial.println("-- HC06 - Command not known for this version");
-    //TODO return error code to the app
-    break;
+      //TODO return VERSION to the app
+      break;
+    default:
+      DEBUG_PRINT("-- HC06 - Command not known for this version");
+      //TODO return error code to the app
+      break;
   }
 }
 
@@ -159,40 +182,25 @@ void processCommand(char command, String commandDatas) {
  * Process the SCORE command
  */
 void processScoreCommand(String commandDatas) {
-  int datasLength = commandDatas.length();
   int dashPosition = commandDatas.indexOf(CMD_SET_SCORE_SEPARATOR);
-  if (datasLength < 3)
-  {    
-    Serial.println("SCORE - Command datas too short to be processed ; length : " + String(datasLength) + ", datas : " + commandDatas);
-    //TODO return error code to the app
-  }
-  else if (dashPosition == -1)
-  {
-    Serial.println("SCORE - No separator found in command datas ; expected in string : " + CMD_SET_SCORE_SEPARATOR);
-    //TODO return error code to the app
-  }
-  else if (dashPosition == 0 || dashPosition == (datasLength - 1))
-  {
-    Serial.println("SCORE - Separator is at the start or the end of the string while expected in between scores");
-    //TODO return error code to the app
-  }
-  else
-  {    
-    String score[2] = { commandDatas.substring(0, dashPosition), commandDatas.substring(dashPosition + 1) }; // Retrieve score from the datas
-    Serial.println("SCORE - Received ; left : " + score[0] + ", right : " + score[1]);
-    showScore(score[0], score[1]); // Show score on the matrix
-    // TODO return OK code and message to the app
-  }
+  int strLength = commandDatas.length();
+  String scoreLeft = commandDatas.substring(0, dashPosition);
+  String scoreRight = commandDatas.substring(dashPosition + 1, strLength);
+  DEBUG_PRINT("SCORE - Score received");    
+  showScore(scoreLeft, scoreRight); // Show score on the matrix
+  // TODO return OK code and message to the app
 }
 
 /************ MATRIX DISPLAY FUNCTIONS ************/
 
 void initMatrix() {  
   matrix.begin();
+  matrix.show(); // Reinit the pixels for prior text displayed
   matrix.setTextWrap(MATRIX_TEXT_WRAP);
   matrix.setBrightness(MATRIX_BRIGHTNESS);
   matrix.setTextSize(MATRIX_TEXT_SIZE);
   matrix.setFont(&FreeMono9pt7b);
+  DEBUG_PRINT("-- matrix initiated");  
 }
 
 void showWaiting(){
@@ -206,7 +214,6 @@ void showWaiting(){
   //Serial.println(w);
  
   matrix.print(s_wait);
-  Serial.println("xwait : " + (String)x_wait + " / w : " + (String)w + " -w : " + (String)(zero - (int)w));
   if(--x_wait < (zero - (int)w)) {
     x_wait = matrix.width();
     if(++pass >= 3) pass = 0;
@@ -225,9 +232,7 @@ void drawCentreString(const String &buf, int x, int y)
     matrix.print(buf);
 }
 
-void showScore(String blue, String red) {
-  
-  Serial.println("MATRIX - Score Received ; left : " + blue + ", right : " + red);
+void showScore(String left, String right) {  
   matrix.clear();
 
   //matrix.fill(matrix.Color(239, 223, 14), 110, 2);
@@ -250,13 +255,12 @@ void showScore(String blue, String red) {
     
   /*String bufferBlue = "";
   if(blue.length() < 2){
-    bufferBlue = "0" + blue;
+    bufferBlue = "0" + left;
   }else{
-    bufferBlue = blue;
+    bufferBlue = left;
   }*/
   
-  Serial.println("MATRIX - Draw ; left : " + blue);
-  drawCentreString(blue, 7, 7);
+  drawCentreString(left, 7, 7);
 
   //matrix.setTextColor(MATRIX_COLORS[3]);
   //drawCentreString("-", 18, 10);
@@ -265,16 +269,15 @@ void showScore(String blue, String red) {
 
   /*String bufferRed = "";
   if(red.length() < 2){
-    bufferRed = "0" + red;
+    bufferRed = "0" + right;
   }else{
-    bufferRed = red;
+    bufferRed = right;
   }*/
     
-  Serial.println("MATRIX - Draw ; right : " + red);
-  drawCentreString(red, 25, 7);
-  
-  
+  drawCentreString(right, 25, 7);
+    
   matrix.show();
+  DEBUG_PRINT("MATRIX - Score shown");
 }
 
 /************ HC06 BLUETOOTH MODULE FUNCTIONS ************/
@@ -284,11 +287,9 @@ void showScore(String blue, String red) {
  */
 void initHC06() {  
   hc06.begin(HC06_BAUDRATE);
-  if (DEBUG) {
-    getHC06Version();
-  }
   setHC06Name(HC06_DEFAULT_NAME);
   setHC06Pin(HC06_DEFAULT_CODE);
+  DEBUG_PRINT("-- hc06 initiated");  
 }
 
 /**
