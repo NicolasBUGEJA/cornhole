@@ -11,7 +11,7 @@
 /************ CONSTANTS AND CONFIGURATION ************/
 
 // DEBUG MODE [uncomment for debugging]
-#define DEBUG
+// #define DEBUG
 
 // For debug logs and brightness adjustments
 #ifdef DEBUG
@@ -58,6 +58,7 @@ const char CMD_SET_SCORE = 'S';
 const char CMD_SET_SCORE_SEPARATOR = '-';
 const char CMD_GET_VERSION = 'V';
 const char CMD_SET_COLORS = 'C';
+const char CMD_SET_MESSAGE = 'M';
   
 /************ STORE ************/
 /** (variables used during
@@ -82,15 +83,10 @@ String s_wait = "CORN HOLE 2 TURBO WAITING FOR PLAYERS...";
  */
 void setup() {
   Serial.begin(9600);
-  DEBUG_PRINT("STARTING CORN HOLE 2 TURBO");  
-  DEBUG_PRINT("-- INIT HC06 MODULE");   
   initHC06();  
-  DEBUG_PRINT("-- INIT MATRIX MODULE");
   initMatrix();  
-  DEBUG_PRINT("-- SHOW WAITING TEXT");
   //showWaiting();
   delay(500);  
-  DEBUG_PRINT("CORN HOLE 2 TURBO STARTED"); 
 }
 
 /**
@@ -171,6 +167,9 @@ void processCommand(char command, String commandDatas) {
     case CMD_GET_VERSION: // Return version of the arduino program
       //TODO return VERSION to the app
       break;
+    case CMD_SET_MESSAGE:
+
+      break;
     default:
       DEBUG_PRINT("-- HC06 - Command not known for this version");
       //TODO return error code to the app
@@ -186,7 +185,6 @@ void processScoreCommand(String commandDatas) {
   int strLength = commandDatas.length();
   String scoreLeft = commandDatas.substring(0, dashPosition);
   String scoreRight = commandDatas.substring(dashPosition + 1, strLength);
-  DEBUG_PRINT("SCORE - Score received");    
   showScore(scoreLeft, scoreRight); // Show score on the matrix
   // TODO return OK code and message to the app
 }
@@ -200,20 +198,23 @@ void initMatrix() {
   matrix.setBrightness(MATRIX_BRIGHTNESS);
   matrix.setTextSize(MATRIX_TEXT_SIZE);
   matrix.setFont(&FreeMono9pt7b);
-  DEBUG_PRINT("-- matrix initiated");  
 }
 
 void showWaiting(){
+  showMessage(s_wait);
+}
+
+void showMessage(String msg) {
   matrix.setBrightness(5);
   matrix.fillScreen(0);
   matrix.setCursor(x_wait, 7);
   int16_t x1, y1;
   uint16_t w, h;
-  matrix.getTextBounds(s_wait, 0, 7, &x1, &y1, &w, &h);
+  matrix.getTextBounds(msg, 0, 7, &x1, &y1, &w, &h);
   int zero = 0;
   //Serial.println(w);
  
-  matrix.print(s_wait);
+  matrix.print(msg);
   if(--x_wait < (zero - (int)w)) {
     x_wait = matrix.width();
     if(++pass >= 3) pass = 0;
@@ -235,8 +236,6 @@ void drawCentreString(const String &buf, int x, int y)
 void showScore(String left, String right) {  
   matrix.clear();
 
-  //matrix.fill(matrix.Color(239, 223, 14), 110, 2);
-  //matrix.fill(MATRIX_COLORS[1], 142, 4);
   for(int i=112; i<114; i++) {
     matrix.setPixelColor(i, 239, 223, 14);
   }
@@ -253,31 +252,13 @@ void showScore(String left, String right) {
   
   matrix.setTextColor(MATRIX_COLORS[3]);
     
-  /*String bufferBlue = "";
-  if(blue.length() < 2){
-    bufferBlue = "0" + left;
-  }else{
-    bufferBlue = left;
-  }*/
-  
   drawCentreString(left, 7, 7);
 
-  //matrix.setTextColor(MATRIX_COLORS[3]);
-  //drawCentreString("-", 18, 10);
-  
   matrix.setTextColor(MATRIX_COLORS[1]);
 
-  /*String bufferRed = "";
-  if(red.length() < 2){
-    bufferRed = "0" + right;
-  }else{
-    bufferRed = right;
-  }*/
-    
   drawCentreString(right, 25, 7);
     
   matrix.show();
-  DEBUG_PRINT("MATRIX - Score shown");
 }
 
 /************ HC06 BLUETOOTH MODULE FUNCTIONS ************/
@@ -288,8 +269,7 @@ void showScore(String left, String right) {
 void initHC06() {  
   hc06.begin(HC06_BAUDRATE);
   setHC06Name(HC06_DEFAULT_NAME);
-  setHC06Pin(HC06_DEFAULT_CODE);
-  DEBUG_PRINT("-- hc06 initiated");  
+  setHC06Pin(HC06_DEFAULT_CODE);  
 }
 
 /**
