@@ -59,6 +59,7 @@ const char CMD_SET_SCORE_SEPARATOR = '-';
 const char CMD_GET_VERSION = 'V';
 const char CMD_SET_COLORS = 'C';
 const char CMD_SET_MESSAGE = 'M';
+const char CMD_SET_READY = 'R';
   
 /************ STORE ************/
 /** (variables used during
@@ -67,14 +68,11 @@ const char CMD_SET_MESSAGE = 'M';
 const byte numChars = 32;
 char receivedChars[numChars];
 boolean newData = false;
-
-int scoreLeft = 0;
-int scoreRight = 0;
-bool btReady = false;
+boolean readyToPlay = false;
 
 int x_wait    = matrix.width();
 int pass = 0;
-String s_wait = "CORN HOLE 2 TURBO WAITING FOR PLAYERS...";
+String s_wait = "CORN HOLE 2 TURBO WAITING FOR PLAYERS!!!";
 
 /************ MAIN FUNCTIONS ************/
 
@@ -150,6 +148,8 @@ void processDatas() {
       DEBUG_PRINT("-- HC06 - Datas length too short to be processed");
     }
     newData = false;
+  }else if(readyToPlay == false) {
+    showWaiting();
   }
 }
 
@@ -168,7 +168,10 @@ void processCommand(char command, String commandDatas) {
       //TODO return VERSION to the app
       break;
     case CMD_SET_MESSAGE:
-
+      showMessage(commandDatas);
+      break;
+    case CMD_SET_READY:
+      processReadyCommand(commandDatas);
       break;
     default:
       DEBUG_PRINT("-- HC06 - Command not known for this version");
@@ -181,12 +184,24 @@ void processCommand(char command, String commandDatas) {
  * Process the SCORE command
  */
 void processScoreCommand(String commandDatas) {
+  if(readyToPlay == false){
+    readyToPlay = true;
+  }
   int dashPosition = commandDatas.indexOf(CMD_SET_SCORE_SEPARATOR);
   int strLength = commandDatas.length();
   String scoreLeft = commandDatas.substring(0, dashPosition);
   String scoreRight = commandDatas.substring(dashPosition + 1, strLength);
   showScore(scoreLeft, scoreRight); // Show score on the matrix
   // TODO return OK code and message to the app
+}
+
+void processReadyCommand(String commandDatas) {
+  if(commandDatas == "0") {
+    readyToPlay = false;
+  }else{
+    readyToPlay = true;
+    showScore("0", "0");
+  }
 }
 
 /************ MATRIX DISPLAY FUNCTIONS ************/
