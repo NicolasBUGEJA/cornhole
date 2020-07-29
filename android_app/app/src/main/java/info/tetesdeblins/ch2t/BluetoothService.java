@@ -60,7 +60,7 @@ public class BluetoothService {
         Log.d(TAG, String.format("sendMessageStateChange() - oldState=%d , newState=%d", newState , state));
         newState = state;
         // Give the new state to the Handler so the UI Activity can update
-        handler.obtainMessage(Constants.MESSAGE_STATE_CHANGE, newState, -1).sendToTarget();
+        handler.obtainMessage(Constants.MESSAGE_BLUETOOTH_STATE_CHANGE, newState, -1).sendToTarget();
     }
 
     /**
@@ -478,7 +478,7 @@ public class BluetoothService {
                     bytes = mmInStream.read(buffer);
 
                     // Send the obtained bytes to the UI Activity
-                    handler.obtainMessage(Constants.MESSAGE_READ, bytes, -1, buffer)
+                    handler.obtainMessage(Constants.MESSAGE_BLUETOOTH_READ, bytes, -1, buffer)
                             .sendToTarget();
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
@@ -498,7 +498,7 @@ public class BluetoothService {
                 mmOutStream.write(buffer);
 
                 // Share the sent message back to the UI Activity
-                handler.obtainMessage(Constants.MESSAGE_WRITE, -1, -1, buffer)
+                handler.obtainMessage(Constants.MESSAGE_BLUETOOTH_WRITE, -1, -1, buffer)
                         .sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "Exception during write", e);
