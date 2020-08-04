@@ -14,6 +14,7 @@ public interface Constants {
     public static final int MESSAGE_DEVICE_NAME = 4;
     public static final int MESSAGE_TOAST = 5;
     public static final int MESSAGE_SCORE_CHANGE = 6;
+    public static final int MESSAGE_GAME_START = 7;
 
     // Handler variables
     public static final String HANDLER_DEVICE_NAME = "device_name";

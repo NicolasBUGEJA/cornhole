@@ -181,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
      * @param activity The main activity
      *
      **/
-    public void initializeHandler(FragmentActivity activity) {
+    public void initializeHandler(MainActivity activity) {
         messageHandler = new IncomingHandler(activity);
     }
 
@@ -270,11 +270,11 @@ public class MainActivity extends AppCompatActivity {
      * Handler to handle every messages sent between fragments and views
      */
     static class IncomingHandler extends Handler {
-        public FragmentActivity activity;
+        public MainActivity activity;
 
         private WeakReference<BluetoothService> bluetoothService;
 
-        public IncomingHandler(FragmentActivity activity) {
+        public IncomingHandler(MainActivity activity) {
             this.activity = activity;
         }
 
@@ -319,6 +319,9 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case Constants.MESSAGE_TOAST:
                     Toast.makeText(activity, msg.getData().getString(Constants.HANDLER_TOAST), Toast.LENGTH_SHORT).show();
+                    break;
+                case Constants.MESSAGE_GAME_START:
+                    showGameFragment(activity, bluetoothService.get());
                     break;
                 case Constants.MESSAGE_SCORE_CHANGE:
                     int[] score = msg.getData().getIntArray(Constants.HANDLER_SCORE);
@@ -410,7 +413,7 @@ public class MainActivity extends AppCompatActivity {
      * @param bluetoothService
      * @param score The score to send.
      */
-    private static void sendScore(FragmentActivity activity, BluetoothService bluetoothService, int[] score) {
+    private static void sendScore(MainActivity activity, BluetoothService bluetoothService, int[] score) {
         // Check that we're actually connected before trying anything
         if (bluetoothService.getState() != BluetoothService.STATE_CONNECTED) {
             Toast.makeText(activity, R.string.not_connected, Toast.LENGTH_SHORT).show();
@@ -423,6 +426,23 @@ public class MainActivity extends AppCompatActivity {
             byte[] send = String.format("<S%d-%d>", score[0], score[1]).getBytes();
             bluetoothService.write(send);
         }
+    }
+
+    private static void showGameFragment(MainActivity activity, BluetoothService bluetoothService) {
+        // Check that we're actually connected before trying anything
+        if (bluetoothService.getState() != BluetoothService.STATE_CONNECTED) {
+            Toast.makeText(activity, R.string.not_connected, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        activity.startGame();
+    }
+
+    public void startGame() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        GameFragment fragment = new GameFragment(messageHandler);
+        transaction.replace(R.id.main_content_fragment, fragment);
+        transaction.commit();
     }
 
     /**

@@ -11,7 +11,7 @@
 /************ CONSTANTS AND CONFIGURATION ************/
 
 // DEBUG MODE [uncomment for debugging]
-// #define DEBUG
+#define DEBUG
 
 // For debug logs and brightness adjustments
 #ifdef DEBUG
@@ -135,6 +135,7 @@ void recvWithStartEndMarkers() {
 void processDatas() {
   if (newData == true) {
     String datas = String(receivedChars);
+    DEBUG_PRINT(datas);
     int dataLength = datas.length();
     if (dataLength >= 1) {
       char command = datas.charAt(0); // Retrieving the command
@@ -184,9 +185,9 @@ void processCommand(char command, String commandDatas) {
  * Process the SCORE command
  */
 void processScoreCommand(String commandDatas) {
-  if(readyToPlay == false){
+  //if(readyToPlay == false){
     readyToPlay = true;
-  }
+  //}
   int dashPosition = commandDatas.indexOf(CMD_SET_SCORE_SEPARATOR);
   int strLength = commandDatas.length();
   String scoreLeft = commandDatas.substring(0, dashPosition);
