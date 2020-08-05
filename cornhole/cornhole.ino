@@ -16,10 +16,10 @@
 // For debug logs and brightness adjustments
 #ifdef DEBUG
  #define DEBUG_PRINT(x) Serial.println(x)
- #define MATRIX_BRIGHTNESS 25
+ #define MATRIX_BRIGHTNESS 5
 #else
  #define DEBUG_PRINT(x)
- #define MATRIX_BRIGHTNESS 75
+ #define MATRIX_BRIGHTNESS 50
 #endif
 
 // Program version
@@ -184,7 +184,7 @@ void processCommand(char command, String commandDatas) {
  * Process the SCORE command
  */
 void processScoreCommand(String commandDatas) {
-  if(readyToPlay == false){
+  if (readyToPlay == false){
     readyToPlay = true;
   }
   int dashPosition = commandDatas.indexOf(CMD_SET_SCORE_SEPARATOR);
@@ -219,8 +219,8 @@ void showWaiting(){
   showMessage(s_wait);
 }
 
-void showMessage(String msg) {
-  matrix.setBrightness(5);
+void showMessage(String msg) {  
+  matrix.setBrightness(MATRIX_BRIGHTNESS);
   matrix.fillScreen(0);
   matrix.setCursor(x_wait, 7);
   int16_t x1, y1;
