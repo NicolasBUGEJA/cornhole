@@ -19,7 +19,7 @@
  #define MATRIX_BRIGHTNESS 25
 #else
  #define DEBUG_PRINT(x)
- #define MATRIX_BRIGHTNESS 75
+ #define MATRIX_BRIGHTNESS 50
 #endif
 
 // Program version
@@ -185,9 +185,7 @@ void processCommand(char command, String commandDatas) {
  * Process the SCORE command
  */
 void processScoreCommand(String commandDatas) {
-  //if(readyToPlay == false){
     readyToPlay = true;
-  //}
   int dashPosition = commandDatas.indexOf(CMD_SET_SCORE_SEPARATOR);
   int strLength = commandDatas.length();
   String scoreLeft = commandDatas.substring(0, dashPosition);
@@ -221,7 +219,7 @@ void showWaiting(){
 }
 
 void showMessage(String msg) {
-  matrix.setBrightness(5);
+  matrix.setBrightness(MATRIX_BRIGHTNESS);
   matrix.fillScreen(0);
   matrix.setCursor(x_wait, 7);
   int16_t x1, y1;
