@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -30,11 +31,20 @@ public class GameFragment extends Fragment {
     private static final String TAG = Constants.TAG_LOG + " GameFragment";
 
     private final MainActivity.IncomingHandler messageHandler;
+    private final GameService gameService;
 
+    // Listener for click on textview
+    private View.OnClickListener textViewListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            testScore();
+        }
+    };
 
-    public GameFragment(MainActivity.IncomingHandler messageHandler) {
+    public GameFragment(MainActivity.IncomingHandler messageHandler, GameService gameService) {
         super();
         this.messageHandler = messageHandler;
+        this.gameService = gameService;
     }
 
     @Override
@@ -50,17 +60,12 @@ public class GameFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        int first = 0;
-        int second = 0;
-        int result[] = { first, second };
+        TextView testScore = view.findViewById(R.id.textView);
+        testScore.setOnClickListener(textViewListener);
+    }
 
-        Message msg = messageHandler.obtainMessage(Constants.MESSAGE_SCORE_CHANGE);
-        Bundle bundle = new Bundle();
-        bundle.putIntArray(Constants.HANDLER_SCORE, result);
-        msg.setData(bundle);
-        messageHandler.sendMessage(msg);
-        Log.d(TAG, "onViewCreated()");
-
+    public void testScore() {
+        gameService.increaseLeftScore();
     }
 
     @Override

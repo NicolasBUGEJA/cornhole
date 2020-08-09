@@ -135,7 +135,6 @@ void recvWithStartEndMarkers() {
 void processDatas() {
   if (newData == true) {
     String datas = String(receivedChars);
-    DEBUG_PRINT(datas);
     int dataLength = datas.length();
     if (dataLength >= 1) {
       char command = datas.charAt(0); // Retrieving the command
@@ -266,11 +265,11 @@ void showScore(String left, String right) {
   
   matrix.setTextColor(MATRIX_COLORS[3]);
     
-  drawCentreString(left, 7, 7);
+  drawCentreString(left, 6, 7);
 
   matrix.setTextColor(MATRIX_COLORS[1]);
 
-  drawCentreString(right, 25, 7);
+  drawCentreString(right, 26, 7);
     
   matrix.show();
 }

@@ -70,6 +70,9 @@ public class MainActivity extends AppCompatActivity {
     // The bluetooth service used to communicate with the arduino/board
     BluetoothService bluetoothService = null;
 
+    // The game service used to store the score
+    GameService gameService = null;
+
     /**
      * The Handler that gets information back from the BluetoothService
      */
@@ -142,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         initializeLogging();
+        initializeGameService(messageHandler);
 
         // If BT is not on, request that it be enabled.
         // setupChat() will then be called during onActivityResult
@@ -191,6 +195,13 @@ public class MainActivity extends AppCompatActivity {
     public void initializeBluetooth(Handler handler) {
         // Initialize the BluetoothChatService to perform bluetooth connections
         bluetoothService = new BluetoothService(this, handler);
+    }
+
+    /**
+     * Create the game service
+     */
+    public void initializeGameService(Handler handler) {
+        gameService = new GameService(this, handler);
     }
 
     @Override
@@ -421,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Check that there's actually something to send
-        if (score[0] > 0 && score[1] > 0) {
+        if (score[0] >= 0 && score[1] >= 0) {
             // Get the message bytes and tell the BluetoothService to write
             byte[] send = String.format("<S%d-%d>", score[0], score[1]).getBytes();
             bluetoothService.write(send);
@@ -440,7 +451,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startGame() {
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        GameFragment fragment = new GameFragment(messageHandler);
+        GameFragment fragment = new GameFragment(messageHandler, gameService);
         transaction.replace(R.id.main_content_fragment, fragment);
         transaction.commit();
     }

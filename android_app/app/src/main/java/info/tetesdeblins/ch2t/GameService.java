@@ -25,21 +25,23 @@ public class GameService {
         this.handler = handler;
     }
 
-    private void increaseLeftScore() {
+    public void increaseLeftScore() {
         Log.d(TAG, String.format("increaseLeftScore()"));
         if (score[0] < 99) {
             score[0]++;
             sendScoreMessage();
         }
     }
-    private void decreaseLeftScore() {
+
+    public void decreaseLeftScore() {
         Log.d(TAG, String.format("decreaseLeftScore()"));
         if (score[0] > 0) {
             score[0]--;
             sendScoreMessage();
         }
     }
-    private void increaseRightScore() {
+
+    public void increaseRightScore() {
         Log.d(TAG, String.format("increaseRightScore()"));
         if (score[1] < 99) {
             score[1]++;
@@ -47,7 +49,7 @@ public class GameService {
         }
     }
 
-    private void decreaseRightScore() {
+    public void decreaseRightScore() {
         Log.d(TAG, String.format("decreaseRightScore()"));
         if (score[1] > 0) {
             score[1]--;
