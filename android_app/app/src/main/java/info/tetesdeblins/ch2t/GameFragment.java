@@ -11,6 +11,7 @@ import android.os.Message;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,11 +34,35 @@ public class GameFragment extends Fragment {
     private final MainActivity.IncomingHandler messageHandler;
     private final GameService gameService;
 
-    // Listener for click on textview
-    private View.OnClickListener textViewListener = new View.OnClickListener() {
+    // Listener for click on score_up1
+    private View.OnClickListener scoreUp1Listener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            testScore();
+            increaseScore(0);
+        }
+    };
+
+    // Listener for click on score_up2
+    private View.OnClickListener scoreUp2Listener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            increaseScore(1);
+        }
+    };
+
+    // Listener for click on score_down1
+    private View.OnClickListener scoreDown1Listener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            decreaseScore(0);
+        }
+    };
+
+    // Listener for click on score_down2
+    private View.OnClickListener scoreDown2Listener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            decreaseScore(1);
         }
     };
 
@@ -60,12 +85,46 @@ public class GameFragment extends Fragment {
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        TextView testScore = view.findViewById(R.id.textView);
-        testScore.setOnClickListener(textViewListener);
+        drawScores(view);
+
+        ImageButton scoreUp1Button = view.findViewById(R.id.score_up1);
+        scoreUp1Button.setOnClickListener(scoreUp1Listener);
+
+        ImageButton scoreUp2Button = view.findViewById(R.id.score_up2);
+        scoreUp2Button.setOnClickListener(scoreUp2Listener);
+
+        ImageButton scoreDown1Button = view.findViewById(R.id.score_down1);
+        scoreDown1Button.setOnClickListener(scoreDown1Listener);
+
+        ImageButton scoreDown2Button = view.findViewById(R.id.score_down2);
+        scoreDown2Button.setOnClickListener(scoreDown2Listener);
+
     }
 
-    public void testScore() {
-        gameService.increaseLeftScore();
+    private void drawScores(View view) {
+        TextView score_1 = view.findViewById(R.id.score_1);
+        score_1.setText(Integer.toString(this.gameService.getLeftScore()));
+
+        TextView score_2 = view.findViewById(R.id.score_2);
+        score_2.setText(Integer.toString(this.gameService.getRightScore()));
+    }
+
+    public void increaseScore(int position) {
+        if(position == 0) {
+            gameService.increaseLeftScore();
+        } else {
+            gameService.increaseRightScore();
+        }
+        drawScores(this.getView());
+    }
+
+    public void decreaseScore(int position) {
+        if(position == 0) {
+            gameService.decreaseLeftScore();
+        } else {
+            gameService.decreaseRightScore();
+        }
+        drawScores(this.getView());
     }
 
     @Override

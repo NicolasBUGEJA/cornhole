@@ -68,4 +68,12 @@ public class GameService {
         msg.setData(bundle);
         handler.sendMessage(msg);
     }
+
+    public int getLeftScore() {
+        return score[0];
+    }
+
+    public int getRightScore() {
+        return score[1];
+    }
 }
