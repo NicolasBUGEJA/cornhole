@@ -27,7 +27,7 @@ public class GameService {
 
     public void increaseLeftScore() {
         Log.d(TAG, String.format("increaseLeftScore()"));
-        if (score[0] < 99) {
+        if (score[0] < 21) {
             score[0]++;
             sendScoreMessage();
         }
@@ -43,7 +43,7 @@ public class GameService {
 
     public void increaseRightScore() {
         Log.d(TAG, String.format("increaseRightScore()"));
-        if (score[1] < 99) {
+        if (score[1] < 21) {
             score[1]++;
             sendScoreMessage();
         }

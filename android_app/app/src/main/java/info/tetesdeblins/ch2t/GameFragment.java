@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.graphics.Point;
+import android.graphics.Shader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -16,6 +18,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -25,6 +29,7 @@ import androidx.fragment.app.FragmentActivity;
 import java.util.Random;
 
 import info.tetesdeblins.ch2t.common.logger.Log;
+import info.tetesdeblins.ch2t.GradientManager;
 
 
 public class GameFragment extends Fragment {
@@ -33,6 +38,10 @@ public class GameFragment extends Fragment {
 
     private final MainActivity.IncomingHandler messageHandler;
     private final GameService gameService;
+
+    private Shader shader;
+
+    private GradientManager mGradientManager;
 
     // Listener for click on score_up1
     private View.OnClickListener scoreUp1Listener = new View.OnClickListener() {
@@ -102,11 +111,20 @@ public class GameFragment extends Fragment {
     }
 
     private void drawScores(View view) {
-        TextView score_1 = view.findViewById(R.id.score_1);
-        score_1.setText(Integer.toString(this.gameService.getLeftScore()));
 
-        TextView score_2 = view.findViewById(R.id.score_2);
-        score_2.setText(Integer.toString(this.gameService.getRightScore()));
+        TextView mainScore = view.findViewById(R.id.main_score);
+        String score = Integer.toString(this.gameService.getLeftScore()) + " - " + Integer.toString(this.gameService.getRightScore());
+        mainScore.setText(score);
+        mainScore.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        int mWidth = mainScore.getWidth();
+        int mHeight = mainScore.getHeight();
+        Point size = new Point(mWidth,mHeight);
+
+        // Initializing a new instance of GradientManager class
+        mGradientManager = new GradientManager(getActivity().getApplicationContext(),size);
+
+        shader = mGradientManager.getMyLinearGradient();
+        mainScore.getPaint().setShader(shader);
     }
 
     public void increaseScore(int position) {

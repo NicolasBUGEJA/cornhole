@@ -14,102 +14,138 @@
  limitations under the License.
 -->
 
-<LinearLayout
+<!--RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_centerVertical="true"
-    android:orientation="vertical"
-    >
-    <LinearLayout
+    android:layout_height="match_parent" -->
+
+    <!-- ImageView
+        android:id="@+id/main_backgroundImage"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:gravity="bottom"
-        >
+        android:layout_height="match_parent"
+        android:layout_alignParentTop="true"
+        android:scaleType="fitCenter"
+        android:src="@drawable/board_map_score" / -->
 
-        <TextView
-            android:id="@+id/score_1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:cursorVisible="false"
-            android:textAlignment="center"
-            android:textColor="@android:color/background_light"></TextView>
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/score_separator"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:cursorVisible="false"
-            android:text="@string/separator"
-            android:textAlignment="center"
-            android:textColor="@android:color/background_light"></TextView>
+            android:gravity="bottom"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/score_2"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="2"
-            android:cursorVisible="false"
-            android:textAlignment="center"
-            android:textColor="@android:color/background_light"></TextView>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal"
-        android:gravity="bottom"
-        >
+            <!-- TextView
+                android:id="@+id/score_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:cursorVisible="false"
+                android:fontFamily="@font/vcr_osd"
+                android:textAlignment="center"
+                android:textColor="@android:color/background_light"
+                android:textSize="28sp"
+                android:textStyle="bold"></TextView>
 
-        <ImageButton
-            android:id="@+id/score_up1"
-            android:layout_width="0dp"
-            android:layout_height="100dp"
+            <TextView
+                android:id="@+id/score_separator"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:cursorVisible="false"
+                android:fontFamily="@font/vcr_osd"
+                android:text="@string/separator"
+                android:textAlignment="center"
+                android:textColor="@android:color/background_light"
+                android:textSize="28sp"
+                android:textStyle="bold"></TextView>
+
+            <TextView
+                android:id="@+id/score_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:cursorVisible="false"
+                android:fontFamily="@font/vcr_osd"
+                android:textAlignment="center"
+                android:textColor="@android:color/background_light"
+                android:textSize="28sp"
+                android:textStyle="bold"></TextView -->
+            <TextView
+                android:id="@+id/main_score"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:cursorVisible="false"
+                android:fontFamily="@font/vcr_osd"
+                android:textAlignment="center"
+                android:textColor="@android:color/background_light"
+                android:textSize="56sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="28sp"></TextView>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:adjustViewBounds="true"
-            android:backgroundTint="#00FFFFFF"
-            android:scaleType="centerInside"
-            app:srcCompat="@drawable/score_up1"></ImageButton>
+            android:gravity="bottom"
+            android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/score_up2"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_weight="1"
-        android:adjustViewBounds="true"
-        android:backgroundTint="#00FFFFFF"
-        android:scaleType="centerInside"
-        app:srcCompat="@drawable/score_up2"></ImageButton>
-    </LinearLayout>
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="horizontal">
-    <ImageButton
-        android:id="@+id/score_down1"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_weight="1"
-        android:adjustViewBounds="true"
-        android:backgroundTint="#00FFFFFF"
-        android:scaleType="centerInside"
-        app:srcCompat="@drawable/score_down1"></ImageButton>
+            <ImageButton
+                android:id="@+id/score_up1"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:backgroundTint="#00FFFFFF"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/score_up1"></ImageButton>
 
-    <ImageButton
-        android:id="@+id/score_down2"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_weight="1"
-        android:adjustViewBounds="true"
-        android:backgroundTint="#00FFFFFF"
-        android:scaleType="centerInside"
-        app:srcCompat="@drawable/score_down2"></ImageButton>
+            <ImageButton
+                android:id="@+id/score_up2"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:backgroundTint="#00FFFFFF"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/score_up2"></ImageButton>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/score_down1"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:backgroundTint="#00FFFFFF"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/score_down1"></ImageButton>
+
+            <ImageButton
+                android:id="@+id/score_down2"
+                android:layout_width="0dp"
+                android:layout_height="100dp"
+                android:layout_weight="1"
+                android:adjustViewBounds="true"
+                android:backgroundTint="#00FFFFFF"
+                android:scaleType="centerInside"
+                app:srcCompat="@drawable/score_down2"></ImageButton>
+        </LinearLayout>
     </LinearLayout>
-</LinearLayout>
+<!-- /RelativeLayout -->
